@@ -1,22 +1,21 @@
 # AI 学习助手项目结构
 
-## 项目简介
+本文档说明 AI 学习助手当前仓库结构、核心源码模块和主要数据流。项目采用 npm workspaces 管理前端和后端两个子项目。
+
+## 项目概览
 
 AI 学习助手是一个基于 Vue 3、TypeScript、Vite、Element Plus、Node.js、Express、MySQL 和 AI API 构建的智能问答平台。
 
-AI 能力通过后端统一调用，支持接入：
+系统主要能力包括：
 
-- OpenAI API
-- DeepSeek API
-
-项目支持以下核心功能：
-
-- 多轮对话
-- 聊天记录管理
-- Markdown 渲染
-- 代码高亮
-- AI 回复流式输出
-- 会话创建、重命名、删除和查看
+- 用户登录、注册、注销和 JWT 鉴权
+- 演示账号自动初始化
+- 多轮 AI 对话和流式回复
+- 会话新建、查看、重命名和删除
+- Markdown 渲染、代码高亮和代码复制
+- 头像地址更新和头像文件上传
+- OpenAI / DeepSeek 后端统一代理调用
+- MySQL 持久化用户、会话和消息数据
 
 ## 技术栈
 
@@ -28,357 +27,305 @@ AI 能力通过后端统一调用，支持接入：
 - Element Plus
 - Pinia
 - Vue Router
-- Markdown 渲染库
-- 代码高亮库
+- Axios
+- Markdown 渲染与代码高亮相关库
 
 ### 后端
 
 - Node.js
 - Express
 - TypeScript
-- OpenAI SDK
 - MySQL
-- Server-Sent Events 或流式响应
-- OpenAI API 或 DeepSeek API
+- JWT
+- bcryptjs
+- zod
+- multer
+- OpenAI SDK
+- Server-Sent Events
 
-## 项目主目录
+## 当前目录结构
 
 ```text
-Ai-chat-project/
-├── frontend/                  # 前端项目：Vue 3 + TypeScript + Vite + Element Plus
-│   ├── public/                # 静态资源，会被 Vite 直接托管
+ai_chat_project/
+├── frontend/                         # 前端工作区
 │   ├── src/
-│   │   ├── assets/            # 图片、图标、静态前端资源
-│   │   ├── components/        # 可复用 UI 组件，主要基于 Element Plus 封装
-│   │   │   ├── chat/          # 聊天相关组件
-│   │   │   ├── markdown/      # Markdown 渲染和代码块组件
-│   │   │   └── common/        # 通用组件，如按钮、弹窗、加载状态、空状态
-│   │   ├── composables/       # Vue 组合式函数
-│   │   ├── layouts/           # 页面布局组件
-│   │   ├── pages/             # 页面级组件
-│   │   ├── router/            # Vue Router 路由配置
-│   │   ├── services/          # 前端接口请求封装
-│   │   ├── stores/            # Pinia 状态管理
-│   │   ├── styles/            # 全局样式、主题变量
-│   │   ├── types/             # 前端 TypeScript 类型定义
-│   │   ├── utils/             # 前端工具函数
-│   │   ├── App.vue            # 根组件
-│   │   └── main.ts            # 前端入口文件
+│   │   ├── components/
+│   │   │   ├── chat/                 # 聊天页组件
+│   │   │   │   ├── ChatInput.vue
+│   │   │   │   ├── ConversationSidebar.vue
+│   │   │   │   └── MessageList.vue
+│   │   │   ├── common/               # 用户资料和通用弹窗组件
+│   │   │   │   ├── AvatarDialog.vue
+│   │   │   │   ├── PasswordDialog.vue
+│   │   │   │   └── UserAvatar.vue
+│   │   │   └── markdown/             # Markdown 展示组件
+│   │   │       └── MarkdownRenderer.vue
+│   │   ├── pages/                    # 页面级组件
+│   │   │   ├── ChatPage.vue
+│   │   │   └── LoginPage.vue
+│   │   ├── router/                   # Vue Router 配置
+│   │   │   └── index.ts
+│   │   ├── services/                 # 前端 API 封装
+│   │   │   ├── authApi.ts
+│   │   │   ├── chatApi.ts
+│   │   │   ├── conversationApi.ts
+│   │   │   └── http.ts
+│   │   ├── stores/                   # Pinia 状态管理
+│   │   │   ├── authStore.ts
+│   │   │   └── chatStore.ts
+│   │   ├── styles/
+│   │   │   └── main.css
+│   │   ├── types/
+│   │   │   └── chat.ts
+│   │   ├── App.vue
+│   │   └── main.ts
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── vite.config.ts
 │
-├── backend/                   # 后端项目：Node.js + Express + TypeScript
+├── backend/                          # 后端工作区
+│   ├── database/
+│   │   └── schema.sql                # MySQL 建表脚本
 │   ├── src/
-│   │   ├── config/            # 环境变量和应用配置
-│   │   ├── controllers/       # 控制器，处理请求和响应
-│   │   ├── middleware/        # 中间件，如错误处理、参数校验、鉴权
-│   │   ├── routes/            # API 路由定义
-│   │   ├── services/          # 业务服务，如 AI API、聊天、流式响应
-│   │   ├── storage/           # 数据存储层，负责 MySQL 数据访问
-│   │   ├── types/             # 后端 TypeScript 类型定义
-│   │   ├── utils/             # 后端工具函数
-│   │   └── server.ts          # Express 服务入口
+│   │   ├── config/
+│   │   │   └── env.ts                # 环境变量读取与默认值
+│   │   ├── controllers/              # HTTP 控制器
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── chat.controller.ts
+│   │   │   └── conversation.controller.ts
+│   │   ├── middleware/               # Express 中间件
+│   │   │   ├── auth.middleware.ts
+│   │   │   ├── error.middleware.ts
+│   │   │   └── upload.middleware.ts
+│   │   ├── routes/                   # API 路由
+│   │   │   ├── auth.routes.ts
+│   │   │   ├── chat.routes.ts
+│   │   │   └── conversation.routes.ts
+│   │   ├── services/                 # 业务逻辑与第三方 API 封装
+│   │   │   ├── ai.service.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── bootstrap.service.ts
+│   │   │   ├── chat.service.ts
+│   │   │   ├── conversation.service.ts
+│   │   │   ├── deepseek.service.ts
+│   │   │   └── openai.service.ts
+│   │   ├── storage/                  # MySQL 数据访问层
+│   │   │   ├── conversation.storage.ts
+│   │   │   ├── db.ts
+│   │   │   ├── message.storage.ts
+│   │   │   └── user.storage.ts
+│   │   ├── types/                    # 后端类型定义
+│   │   │   ├── chat.ts
+│   │   │   ├── express.d.ts
+│   │   │   └── user.ts
+│   │   ├── utils/
+│   │   │   └── asyncHandler.ts
+│   │   └── server.ts                 # Express 应用入口
+│   ├── uploads/avatars/              # 头像上传目录，运行时生成文件
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── shared/                    # 前后端共享类型、常量
-│   ├── types/
-│   └── constants/
-│
-├── docs/                      # 项目文档
-│   ├── api.md                 # API 接口文档
-│   └── features.md            # 功能说明文档
-│
-├── scripts/                   # 开发、构建、部署脚本
-├── .env.example               # 环境变量示例
+├── docs/
+│   ├── api.md                        # API 接口文档
+│   └── features.md                   # 产品功能说明
+├── scripts/                          # 脚本目录，预留扩展
+├── .env.example                      # 后端环境变量示例
 ├── .gitignore
-├── package.json               # 根目录工作区配置，可选
+├── package.json                      # 根工作区脚本
+├── package-lock.json
+├── PROJECT_STRUCTURE.md
 └── README.md
 ```
 
+说明：
+
+- `frontend/dist/` 和 `backend/dist/` 是构建输出目录，不是主要源码目录。
+- `node_modules/` 是依赖目录，不纳入项目结构说明。
+- `backend/uploads/avatars/` 是头像上传后的运行时文件目录。
+- `shared/` 当前未放入实际共享源码，后续如抽取前后端通用类型，可在该目录扩展。
+
 ## 前端模块说明
 
-### `components/chat`
+### 页面入口
 
-聊天核心组件目录，建议包含：
+- `frontend/src/main.ts`：创建 Vue 应用，注册 Pinia、Router 和 Element Plus。
+- `frontend/src/App.vue`：应用根组件，承载路由页面。
+- `frontend/src/router/index.ts`：配置登录页和聊天页路由，并根据登录状态进行访问控制。
 
-- `ChatLayout.vue`：聊天主布局
-- `ConversationSidebar.vue`：会话侧边栏
-- `MessageList.vue`：消息列表
-- `MessageItem.vue`：单条消息
-- `ChatInput.vue`：消息输入框
-- `ConversationActions.vue`：会话操作按钮，如新建、重命名、删除
+### 页面组件
 
-### `components/markdown`
+- `frontend/src/pages/LoginPage.vue`：登录和注册页面，内置演示账号填入入口。
+- `frontend/src/pages/ChatPage.vue`：聊天主页面，组合会话侧边栏、消息列表和输入框。
 
-Markdown 和代码展示组件目录，建议包含：
+### 聊天组件
 
-- `MarkdownRenderer.vue`：Markdown 渲染组件
-- `CodeBlock.vue`：代码块展示组件
-- `CopyCodeButton.vue`：复制代码按钮
+- `ChatInput.vue`：用户消息输入、发送、停止生成和重新生成操作。
+- `ConversationSidebar.vue`：会话列表、新建会话、重命名、删除、用户头像和退出入口。
+- `MessageList.vue`：消息列表展示，负责区分用户消息和 AI 消息。
 
-### `components/common`
+### 用户与通用组件
 
-通用组件目录，建议基于 Element Plus 做轻量封装：
+- `UserAvatar.vue`：展示当前用户头像或默认头像。
+- `AvatarDialog.vue`：头像地址更新和本地头像上传。
+- `PasswordDialog.vue`：修改密码弹窗。
 
-- 通用按钮
-- 弹窗
-- 加载状态
-- 空状态
-- 错误提示
+### Markdown 组件
 
-### `services`
+- `MarkdownRenderer.vue`：渲染 AI 回复中的 Markdown 内容，并处理代码块高亮和复制。
 
-前端接口请求目录，建议包含：
+### 前端服务层
 
-- `chatApi.ts`：聊天接口，包括发送消息、接收流式响应
-- `conversationApi.ts`：会话接口，包括查询、新建、重命名、删除
+- `http.ts`：Axios 实例和通用请求/响应处理。
+- `authApi.ts`：登录、注册、注销、头像和密码相关接口。
+- `conversationApi.ts`：会话列表、创建、详情、重命名和删除接口。
+- `chatApi.ts`：聊天流式接口和重新生成接口，负责读取 SSE 数据流。
 
-### `stores`
+### 前端状态管理
 
-Pinia 状态管理目录，建议包含：
-
-- `chatStore.ts`：当前会话、消息列表、AI 生成状态
-- `conversationStore.ts`：会话列表、当前选中会话
-- `sessionStore.ts`：用户偏好设置，如模型、主题、输入参数
+- `authStore.ts`：保存 JWT、当前用户信息和登录状态，读写 `localStorage`。
+- `chatStore.ts`：维护会话列表、当前会话、消息列表、AI 生成状态和请求中断控制器。
 
 ## 后端模块说明
 
-### `routes`
+### 应用入口
 
-API 路由目录，建议包含：
+`backend/src/server.ts` 负责：
 
-- `chat.routes.ts`：聊天和流式回复接口
-- `conversation.routes.ts`：会话管理接口
+- 创建 Express 应用
+- 配置 CORS、JSON 解析和静态上传目录
+- 注册健康检查、认证、聊天和会话路由
+- 对聊天和会话接口启用 JWT 鉴权
+- 注册统一错误处理中间件
+- 启动前自动初始化演示管理员账号
 
-### `controllers`
+### 配置模块
 
-控制器目录，负责接收请求、调用 service、返回响应。
+- `config/env.ts`：读取端口、CORS、JWT、AI 供应商、模型和 MySQL 连接配置。
 
-建议包含：
+### 路由与控制器
 
-- `chat.controller.ts`
-- `conversation.controller.ts`
+- `routes/auth.routes.ts`：注册、登录、当前用户、修改密码、头像更新、头像上传和注销路由。
+- `routes/chat.routes.ts`：流式聊天和重新生成路由。
+- `routes/conversation.routes.ts`：会话列表、创建、详情、更新和删除路由。
+- `controllers/*.ts`：使用 zod 校验请求参数，调用 service，并返回 HTTP 响应。
 
-### `services`
+### 中间件
 
-业务逻辑目录，建议包含：
+- `auth.middleware.ts`：解析 Bearer Token，把用户信息挂到 `req.user`。
+- `error.middleware.ts`：统一处理业务错误和参数校验错误。
+- `upload.middleware.ts`：处理头像文件上传。
 
-- `openai.service.ts`：OpenAI API 调用封装
-- `deepseek.service.ts`：DeepSeek API 调用封装
-- `ai.service.ts`：AI 服务统一入口，根据配置选择 OpenAI 或 DeepSeek
-- `chat.service.ts`：聊天上下文、多轮对话处理
-- `stream.service.ts`：流式输出处理
-- `conversation.service.ts`：会话管理业务逻辑
+### 业务服务
 
-### `storage`
+- `auth.service.ts`：注册、登录、JWT 签发、密码校验、头像更新和密码修改。
+- `bootstrap.service.ts`：启动时创建或更新演示管理员账号。
+- `conversation.service.ts`：会话列表、创建、详情、重命名和删除业务逻辑。
+- `chat.service.ts`：保存用户消息、创建助手消息、组织上下文、处理 SSE 流式返回、重新生成回复和自动生成会话标题。
+- `ai.service.ts`：根据环境变量选择 OpenAI 或 DeepSeek 服务。
+- `openai.service.ts`：OpenAI 调用封装。
+- `deepseek.service.ts`：DeepSeek 调用封装。
 
-数据存储层目录。
+### 数据访问层
 
-推荐使用 MySQL 存储用户、会话和消息数据。
+- `db.ts`：MySQL 连接池。
+- `user.storage.ts`：用户查询、创建、头像更新、密码更新和演示账号写入。
+- `conversation.storage.ts`：会话查询、创建、重命名、更新时间和软删除。
+- `message.storage.ts`：消息创建、查询、更新和删除。
 
-建议包含：
+### 类型与工具
 
-- `db.ts`：MySQL 连接池配置
-- `user.storage.ts`
-- `conversation.storage.ts`
-- `message.storage.ts`
+- `types/chat.ts`：聊天消息、会话和 AI 消息类型。
+- `types/user.ts`：用户和 JWT 用户类型。
+- `types/express.d.ts`：扩展 Express Request 类型，使 `req.user` 可用。
+- `utils/asyncHandler.ts`：包装异步控制器，将错误交给统一错误处理中间件。
 
-### `middleware`
+## 主要调用流程
 
-Express 中间件目录，建议包含：
-
-- `error.middleware.ts`：统一错误处理
-- `validate.middleware.ts`：请求参数校验
-- `auth.middleware.ts`：鉴权预留
-
-## AI 接口调用流程
-
-前端不直接调用 OpenAI API 或 DeepSeek API，所有 AI 请求都必须通过 Node.js 后端转发。
-
-整体流程：
-
-```text
-前端页面
-  ↓
-Node.js + Express 服务器
-  ↓
-OpenAI API 或 DeepSeek API
-  ↓
-Node.js + Express 服务器
-  ↓
-前端页面展示结果
-```
-
-这样设计的原因：
-
-- 保护 API Key，避免密钥暴露在浏览器中。
-- 统一处理模型参数、上下文、聊天记录和用户权限。
-- 方便在 OpenAI API 和 DeepSeek API 之间切换。
-- 后端可以统一处理错误、限流、日志和 token 统计。
-
-### AI 服务设计
-
-后端建议使用统一的 `ai.service.ts` 作为 AI 调用入口。
+### 登录流程
 
 ```text
-chat.controller.ts
+LoginPage.vue
   ↓
-chat.service.ts
+authStore.login()
   ↓
-ai.service.ts
-  ├── openai.service.ts
-  └── deepseek.service.ts
+authApi.loginApi()
+  ↓
+POST /api/auth/login
+  ↓
+auth.controller.ts
+  ↓
+auth.service.ts
+  ↓
+user.storage.ts
+  ↓
+返回 user + token，前端写入 localStorage
 ```
 
-推荐通过环境变量控制当前使用的 AI 供应商：
+### 会话加载流程
 
 ```text
-AI_PROVIDER=openai
-OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-4.1-mini
-
-DEEPSEEK_API_KEY=your_deepseek_api_key
-DEEPSEEK_MODEL=deepseek-chat
+ChatPage.vue mounted
+  ↓
+chatStore.loadConversations()
+  ↓
+conversationApi.listConversations()
+  ↓
+GET /api/conversations
+  ↓
+auth.middleware.ts
+  ↓
+conversation.controller.ts
+  ↓
+conversation.service.ts
+  ↓
+conversation.storage.ts
 ```
 
-当 `AI_PROVIDER=openai` 时，后端调用 OpenAI API。
-
-当 `AI_PROVIDER=deepseek` 时，后端调用 DeepSeek API。
-
-## 核心 API 设计
+### 流式聊天流程
 
 ```text
-POST   /api/chat/stream              # 发送消息并流式返回 AI 回复
-GET    /api/conversations            # 获取会话列表
-POST   /api/conversations            # 创建会话
-GET    /api/conversations/:id        # 获取单个会话及其消息
-PATCH  /api/conversations/:id        # 更新会话，如重命名
-DELETE /api/conversations/:id        # 删除会话
+ChatInput.vue
+  ↓
+chatStore.sendMessage()
+  ↓
+chatApi.streamChat()
+  ↓
+POST /api/chat/stream
+  ↓
+auth.middleware.ts
+  ↓
+chat.controller.ts 设置 SSE 响应头
+  ↓
+chat.service.ts 保存用户消息和助手占位消息
+  ↓
+ai.service.ts 选择 OpenAI 或 DeepSeek
+  ↓
+openai.service.ts / deepseek.service.ts
+  ↓
+SSE token / done / stopped / error 事件返回前端
+  ↓
+chatStore 追加 token 并刷新当前会话
 ```
 
-## 数据库设计
+## 数据库结构
 
-推荐数据库：MySQL。
+建表脚本位于 `backend/database/schema.sql`。
 
 核心表：
 
-- `users`：用户表
-- `conversations`：会话表
-- `messages`：消息表
+- `users`：用户账号、邮箱、密码哈希、头像和状态。
+- `conversations`：用户会话、标题、模型、系统提示词、归档状态、软删除时间。
+- `messages`：会话消息、角色、内容、模型、token 统计字段、状态和错误信息。
 
-### 表关系
+表关系：
 
 ```text
 users 1 ---- n conversations
 conversations 1 ---- n messages
 ```
 
-一个用户可以拥有多个会话，一个会话可以包含多条消息。
-
-### `users` 用户表
-
-用于存储用户基础信息。
-
-```sql
-CREATE TABLE users (
-  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  username VARCHAR(50) NOT NULL UNIQUE,
-  email VARCHAR(100) UNIQUE,
-  password_hash VARCHAR(255),
-  avatar_url VARCHAR(500),
-  status TINYINT NOT NULL DEFAULT 1 COMMENT '1=正常, 0=禁用',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
-
-字段说明：
-
-- `id`：用户 ID。
-- `username`：用户名。
-- `email`：邮箱，可用于登录或找回账号。
-- `password_hash`：密码哈希值，预留账号体系使用。
-- `avatar_url`：用户头像地址。
-- `status`：用户状态。
-- `created_at`：创建时间。
-- `updated_at`：更新时间。
-
-### `conversations` 会话表
-
-用于存储用户创建的聊天会话。
-
-```sql
-CREATE TABLE conversations (
-  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT UNSIGNED NOT NULL,
-  title VARCHAR(200) NOT NULL DEFAULT '新的会话',
-  model VARCHAR(100) NOT NULL DEFAULT 'gpt-4.1-mini',
-  system_prompt TEXT,
-  is_archived TINYINT NOT NULL DEFAULT 0 COMMENT '1=已归档, 0=未归档',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  deleted_at DATETIME NULL,
-  CONSTRAINT fk_conversations_user_id
-    FOREIGN KEY (user_id) REFERENCES users(id)
-    ON DELETE CASCADE
-);
-```
-
-字段说明：
-
-- `id`：会话 ID。
-- `user_id`：所属用户 ID。
-- `title`：会话标题。
-- `model`：当前会话使用的 AI 模型。
-- `system_prompt`：会话级系统提示词。
-- `is_archived`：是否归档。
-- `created_at`：创建时间。
-- `updated_at`：更新时间。
-- `deleted_at`：软删除时间。
-
-### `messages` 消息表
-
-用于存储每个会话中的用户消息和 AI 回复。
-
-```sql
-CREATE TABLE messages (
-  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  conversation_id BIGINT UNSIGNED NOT NULL,
-  role ENUM('system', 'user', 'assistant') NOT NULL,
-  content MEDIUMTEXT NOT NULL,
-  model VARCHAR(100),
-  prompt_tokens INT UNSIGNED DEFAULT 0,
-  completion_tokens INT UNSIGNED DEFAULT 0,
-  total_tokens INT UNSIGNED DEFAULT 0,
-  status ENUM('streaming', 'completed', 'failed') NOT NULL DEFAULT 'completed',
-  error_message TEXT,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT fk_messages_conversation_id
-    FOREIGN KEY (conversation_id) REFERENCES conversations(id)
-    ON DELETE CASCADE
-);
-```
-
-字段说明：
-
-- `id`：消息 ID。
-- `conversation_id`：所属会话 ID。
-- `role`：消息角色，包含 `system`、`user`、`assistant`。
-- `content`：消息内容，支持 Markdown 文本。
-- `model`：生成该消息时使用的模型，主要用于 AI 回复。
-- `prompt_tokens`：提示词 token 数。
-- `completion_tokens`：回复 token 数。
-- `total_tokens`：总 token 数。
-- `status`：消息状态。
-- `error_message`：AI 回复失败时的错误信息。
-- `created_at`：创建时间。
-- `updated_at`：更新时间。
-
-### 推荐索引
+常用索引：
 
 ```sql
 CREATE INDEX idx_conversations_user_id ON conversations(user_id);
@@ -387,15 +334,29 @@ CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
 CREATE INDEX idx_messages_created_at ON messages(created_at);
 ```
 
-## 推荐开发顺序
+## 环境配置
 
-1. 初始化根目录工作区和 `.env.example`。
-2. 初始化 `frontend`，安装 Vue 3、TypeScript、Vite、Element Plus、Pinia、Vue Router。
-3. 初始化 `backend`，安装 Node.js、Express、TypeScript、OpenAI SDK、MySQL 驱动。
-4. 创建 MySQL 数据库和核心表。
-5. 先实现普通非流式聊天接口。
-6. 再实现 AI 回复流式输出。
-7. 增加聊天记录存储。
-8. 增加 Markdown 渲染和代码高亮。
-9. 完善会话管理：新建、重命名、删除、历史查看。
-10. 优化用户体验：加载状态、错误提示、停止生成、复制代码、重新生成。
+环境变量示例位于 `.env.example`，开发时复制到 `backend/.env`。
+
+关键配置：
+
+- `PORT`：后端服务端口。
+- `CORS_ORIGIN`：允许访问后端的前端地址。
+- `JWT_SECRET`：JWT 签名密钥。
+- `AI_PROVIDER`：当前 AI 供应商，可选 `openai` 或 `deepseek`。
+- `OPENAI_API_KEY` / `DEEPSEEK_API_KEY`：供应商 API Key。
+- `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`：MySQL 连接配置。
+
+## 根目录脚本
+
+根目录 `package.json` 提供以下脚本：
+
+```bash
+npm run dev
+npm run build
+npm run typecheck
+```
+
+- `npm run dev`：并行启动前端和后端开发服务。
+- `npm run build`：构建前端和后端。
+- `npm run typecheck`：执行前后端 TypeScript 类型检查。
